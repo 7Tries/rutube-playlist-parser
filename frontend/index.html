@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rutube Playlist Parser • Нежный парсер ссылок Rutube</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-icon" id="toastIcon">✓</div>
+    <div class="toast-message" id="toastMessage">Ссылки скопированы в буфер обмена</div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand">
+          <div class="brand-symbol">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Rutube Linker</span>
+            <span class="brand-badge">Парсер плейлистов</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="btn-ghost" id="btnHelpModal" title="Инструкция">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Как это работает</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-chip">
+          <span class="chip-dot"></span>
+          <span>Парсинг 100% видео с любой страницы плейлиста</span>
+        </div>
+        <h1 class="hero-title">Парсер видео из плейлистов Rutube</h1>
+        <p class="hero-subtitle">
+          Вставьте ссылку на любой плейлист Rutube — получите полный список прямых ссылок на каждое видео с метаданными и быстрым экспортом.
+        </p>
+
+        <!-- Main Input Card -->
+        <div class="card-glass input-card">
+          <form id="parseForm" class="parse-form" onsubmit="return false;">
+            <div class="input-wrapper">
+              <div class="input-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                id="urlInput" 
+                class="main-input" 
+                placeholder="Вставьте ссылку на плейлист (например: https://rutube.ru/plst/308547/)..." 
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <div class="input-controls">
+                <button type="button" class="btn-subtle" id="btnClear" title="Очистить" style="display: none;">
+                  ✕
+                </button>
+                <button type="button" class="btn-subtle" id="btnPaste" title="Вставить из буфера обмена">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Вставить</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-bottom-row">
+              <!-- Quick Samples -->
+              <div class="quick-samples">
+                <span class="samples-label">Примеры для теста:</span>
+                <button type="button" class="sample-chip" data-url="https://rutube.ru/plst/500000/">
+                  🎓 Oxford Grammar (18 видео)
+                </button>
+                <button type="button" class="sample-chip" data-url="https://rutube.ru/plst/308547/">
+                  🎵 Chillstep Mix (23 видео)
+                </button>
+                <button type="button" class="sample-chip" data-url="https://rutube.ru/plst/200000/">
+                  ✨ Сборник (20 видео)
+                </button>
+              </div>
+
+              <!-- Submit button -->
+              <div class="submit-wrap">
+                <button type="button" id="btnToggleOptions" class="btn-text-options">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                  </svg>
+                  <span>Опции</span>
+                </button>
+                <button type="submit" id="btnParse" class="btn-primary">
+                  <span class="btn-text">Спарсить ссылки</span>
+                  <span class="btn-spinner hidden"></span>
+                  <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible Options -->
+            <div id="optionsDrawer" class="options-drawer hidden">
+              <div class="options-grid">
+                <div class="option-item">
+                  <label for="optMaxPages">Лимит страниц:</label>
+                  <select id="optMaxPages" class="select-soft">
+                    <option value="0" selected>Все видео (без ограничений)</option>
+                    <option value="1">Только 1-я страница (до 20 видео)</option>
+                    <option value="3">До 3 страниц (до 60 видео)</option>
+                    <option value="5">До 5 страниц (до 100 видео)</option>
+                    <option value="10">До 10 страниц (до 200 видео)</option>
+                  </select>
+                </div>
+                <div class="option-item">
+                  <label for="optUrlFormat">Формат ссылок при копировании:</label>
+                  <select id="optUrlFormat" class="select-soft">
+                    <option value="raw" selected>Только чистые ссылки (https://rutube.ru/video/...)</option>
+                    <option value="indexed">С номером (#1 https://...)</option>
+                    <option value="title_url">Название — Ссылка</option>
+                    <option value="markdown">Markdown: [Название](Ссылка)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Parsing Status / Progress Card (Hidden initially) -->
+      <section id="progressSection" class="progress-section hidden">
+        <div class="card-glass progress-card">
+          <div class="progress-header">
+            <div class="progress-info">
+              <div class="pulsing-dot"></div>
+              <span id="progressMessage" class="progress-message">Инициализация запроса...</span>
+            </div>
+            <div class="progress-actions">
+              <span id="progressCounter" class="progress-counter">0 видео</span>
+              <button type="button" id="btnCancel" class="btn-ghost-sm" title="Остановить парсинг">
+                ✕ Отмена
+              </button>
+            </div>
+          </div>
+          <div class="progress-bar-track">
+            <div id="progressBar" class="progress-bar-fill" style="width: 5%;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error Card (Hidden initially) -->
+      <section id="errorSection" class="error-section hidden">
+        <div class="card-glass error-card">
+          <div class="error-icon">⚠️</div>
+          <div class="error-content">
+            <h3 class="error-title">Не удалось спарсить плейлист</h3>
+            <p id="errorMessage" class="error-text">Проверьте ссылку и попробуйте снова.</p>
+          </div>
+          <button type="button" id="btnDismissError" class="btn-subtle">Закрыть</button>
+        </div>
+      </section>
+
+      <!-- Results Section (Hidden initially) -->
+      <section id="resultsSection" class="results-section hidden">
+        <!-- Playlist Meta Header -->
+        <div class="card-glass playlist-meta-card" id="playlistMetaCard">
+          <div class="meta-layout">
+            <div class="meta-cover-wrap" id="metaCoverWrap">
+              <img id="metaCover" src="" alt="Обложка плейлиста" class="meta-cover">
+            </div>
+            <div class="meta-details">
+              <div class="meta-tags-row">
+                <span class="badge-pastel badge-lilac" id="metaTypeBadge">Плейлист</span>
+                <span class="badge-pastel badge-rose" id="metaCountBadge">0 видео</span>
+                <span class="badge-pastel badge-sage" id="metaViewsBadge" style="display: none;">0 просмотров</span>
+              </div>
+              <h2 id="metaTitle" class="meta-title">Название плейлиста</h2>
+              <p id="metaDesc" class="meta-desc"></p>
+              <div class="meta-links-row">
+                <a id="metaRutubeLink" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">
+                  <span>Открыть на Rutube</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
+                <span class="meta-id-text" id="metaIdText">ID: 308547</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="card-glass results-toolbar">
+          <div class="toolbar-left">
+            <div class="search-input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="filterInput" class="filter-input" placeholder="Поиск по названию или автору...">
+              <button type="button" id="btnClearFilter" class="btn-clear-filter hidden">✕</button>
+            </div>
+
+            <div class="sort-select-wrap">
+              <select id="sortSelect" class="select-soft select-sm">
+                <option value="original">Порядок плейлиста</option>
+                <option value="title_asc">Название (А — Я)</option>
+                <option value="title_desc">Название (Я — А)</option>
+                <option value="duration_desc">Сначала длинные</option>
+                <option value="duration_asc">Сначала короткие</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="toolbar-right">
+            <!-- View Mode Switcher -->
+            <div class="view-switcher">
+              <button type="button" class="view-btn active" data-view="cards" title="Вид карточек">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Карточки</span>
+              </button>
+              <button type="button" class="view-btn" data-view="list" title="Табличный вид">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                <span>Список</span>
+              </button>
+              <button type="button" class="view-btn" data-view="raw" title="Сырой список ссылок">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                  <line x1="9" y1="20" x2="15" y2="20"></line>
+                  <line x1="12" y1="4" x2="12" y2="20"></line>
+                </svg>
+                <span>Текст</span>
+              </button>
+            </div>
+
+            <!-- Primary Copy Button -->
+            <button type="button" id="btnCopyAll" class="btn-action-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="btnCopyAllText">Скопировать все ссылки</span>
+            </button>
+
+            <!-- Export Dropdown -->
+            <div class="dropdown-wrapper">
+              <button type="button" id="btnExportToggle" class="btn-subtle-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Скачать</span>
+                <span class="caret">▼</span>
+              </button>
+              <div id="exportMenu" class="dropdown-menu hidden">
+                <button type="button" class="dropdown-item" data-export="txt">
+                  <span class="export-icon">📄</span>
+                  <div class="export-info">
+                    <strong>Список ссылок (.txt)</strong>
+                    <small>Одна ссылка на строку</small>
+                  </div>
+                </button>
+                <button type="button" class="dropdown-item" data-export="csv">
+                  <span class="export-icon">📊</span>
+                  <div class="export-info">
+                    <strong>Таблица Excel (.csv)</strong>
+                    <small>Название, URL, хронометраж, автор</small>
+                  </div>
+                </button>
+                <button type="button" class="dropdown-item" data-export="json">
+                  <span class="export-icon">📦</span>
+                  <div class="export-info">
+                    <strong>JSON данные (.json)</strong>
+                    <small>Полная структура со всеми полями</small>
+                  </div>
+                </button>
+                <button type="button" class="dropdown-item" data-export="md">
+                  <span class="export-icon">📝</span>
+                  <div class="export-info">
+                    <strong>Markdown (.md)</strong>
+                    <small>Список [Заголовок](Ссылка)</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selection Bar (when items are selected) -->
+        <div id="selectionBar" class="selection-bar hidden">
+          <div class="selection-info">
+            <input type="checkbox" id="selectAllCheckbox" class="checkbox-soft">
+            <span id="selectedCountText">Выбрано: 0 из 0</span>
+          </div>
+          <div class="selection-actions">
+            <button type="button" id="btnCopySelected" class="btn-subtle-sm">
+              Скопировать выбранные
+            </button>
+            <button type="button" id="btnDeselectAll" class="btn-subtle-sm">
+              Снять выбор
+            </button>
+          </div>
+        </div>
+
+        <!-- Views Container -->
+        <div id="viewsContainer" class="views-container">
+          <!-- View 1: Cards View -->
+          <div id="cardsView" class="view-panel active">
+            <div id="cardsGrid" class="cards-grid">
+              <!-- Dynamically rendered video cards -->
+            </div>
+          </div>
+
+          <!-- View 2: List View -->
+          <div id="listView" class="view-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="th-check"><input type="checkbox" id="tableHeaderCheck" class="checkbox-soft"></th>
+                    <th class="th-num">#</th>
+                    <th class="th-thumb">Кадр</th>
+                    <th class="th-title">Название</th>
+                    <th class="th-duration">Длительность</th>
+                    <th class="th-author">Канал</th>
+                    <th class="th-link">Ссылка на видео</th>
+                    <th class="th-actions">Действия</th>
+                  </tr>
+                </thead>
+                <tbody id="listTableBody">
+                  <!-- Dynamically rendered rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- View 3: Raw Text View -->
+          <div id="rawView" class="view-panel">
+            <div class="raw-box-card">
+              <div class="raw-box-header">
+                <span class="raw-box-title">Все спарсенные ссылки (<span id="rawLinksCount">0</span>)</span>
+                <div class="raw-actions">
+                  <button type="button" id="btnCopyRaw" class="btn-subtle-sm">
+                    Скопировать текст
+                  </button>
+                  <button type="button" id="btnDownloadRawTxt" class="btn-subtle-sm">
+                    Скачать .txt
+                  </button>
+                </div>
+              </div>
+              <textarea id="rawTextarea" class="raw-textarea" readonly spellcheck="false"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Filter State -->
+        <div id="emptyFilterState" class="empty-filter-state hidden">
+          <div class="empty-emoji">🔍</div>
+          <p>По вашему запросу ничего не найдено</p>
+          <button type="button" id="btnResetFilter" class="btn-subtle-sm">Сбросить фильтр</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-backdrop hidden">
+      <div class="card-glass modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">Как пользоваться парсером</h3>
+          <button type="button" id="btnCloseHelp" class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-section">
+            <h4>📋 Какие ссылки поддерживает парсер?</h4>
+            <ul>
+              <li><strong>Стандартные ссылки плейлиста:</strong> <code>https://rutube.ru/plst/308547/</code></li>
+              <li><strong>Короткие / мобильные:</strong> <code>rutube.ru/plst/308547</code></li>
+              <li><strong>Только ID плейлиста:</strong> <code>308547</code></li>
+              <li><strong>Ссылки видео с плейлистом:</strong> <code>rutube.ru/video/xxxx/?plst=308547</code></li>
+              <li><strong>Каналы:</strong> <code>https://rutube.ru/channel/639184/</code></li>
+            </ul>
+          </div>
+          <div class="help-section">
+            <h4>⚡ Особенности и возможности:</h4>
+            <ul>
+              <li><strong>100% обход страниц:</strong> Rutube выдает по 20 видео на страницу. Парсер автоматически проходит все страницы плейлиста до самого конца.</li>
+              <li><strong>Живой поток (SSE):</strong> Результаты и прогресс поступают в реальном времени.</li>
+              <li><strong>Экспорт:</strong> Прямой список ссылок для скачивания, таблица CSV для Excel, JSON для разработчиков и Markdown.</li>
+              <li><strong>Копирование в 1 клик:</strong> Ссылки готовы для вставки в jDownloader, yt-dlp, заметки или мессенджеры.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btnUnderstand" class="btn-primary-sm">Всё понятно</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span>Rutube Playlist Link Harvester</span>
+          <span class="footer-dot">•</span>
+          <span>Разработано в минималистичном дизайне с заботой</span>
+        </div>
+        <div class="footer-right">
+          <span class="footer-note">Поддерживает любые плейлисты и форматы ссылок Rutube</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
